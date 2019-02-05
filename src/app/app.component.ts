@@ -19,16 +19,44 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.service.getIpAddress().subscribe(data => {
-      console.log({
-        ...data,
-        hora: moment().format('DD/MM/YYYY HH:mm')
-      });
 
-      this.itemsCollection.add({
-        ...data,
-        hora: moment().format('DD/MM/YYYY HH:mm')
-      });
+    var ip_ipify;
+    var lat = 0;
+    var lon = 0;
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((p) => {
+        lat = p.coords.latitude;
+        lon = p.coords.longitude;
+      })
+    }
+
+    this.service.getIpAddressIPIfy().subscribe(data => {
+      ip_ipify = data['ip'];
     });
+
+    setTimeout(() => {
+      this.service.getIpAddressIPInfo().subscribe(data => {
+
+        console.log({
+          ...data,
+          origin: window.location.origin,
+          ip_ipify: ip_ipify,
+          coords_lat: lat,
+          coords_lon: lon,
+          hora: moment().format('DD/MM/YYYY HH:mm')
+        });
+
+        this.itemsCollection.add({
+          ...data,
+          origin: window.location.origin,
+          ip_ipify: ip_ipify,
+          coords_lat: lat,
+          coords_lon: lon,
+          hora: moment().format('DD/MM/YYYY HH:mm')
+        });
+      });
+    }, 6000);
+
   }
 }

@@ -18,6 +18,22 @@ export class IpService {
             );
     }
 
+    getIpAddressIPInfo(): Observable<any> {
+        return this.http
+            .get<any>("https://ipinfo.io/json").pipe(
+                map(response => response || {}),
+                catchError(this.handleError)
+            );
+    }
+
+    getIpAddressIPIfy(): Observable<any> {
+        return this.http
+            .get<any>("https://api.ipify.org/?format=json").pipe(
+                map(response => response || {}),
+                catchError(this.handleError)
+            );
+    }
+
     private handleError(error: HttpErrorResponse): Observable<any> {
         console.error("observable error: ", error.message);
         return observableThrowError(error);
