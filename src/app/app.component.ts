@@ -10,7 +10,10 @@ import * as moment from 'moment';
 })
 export class AppComponent implements OnInit {
 
+  ip_ipify: string = '';
+  location: string = '';
   title = 'Power BI - Rede EPI';
+  id: string;
 
   private itemsCollection: AngularFirestoreCollection<any>;
 
@@ -19,44 +22,69 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
-
-    var ip_ipify;
-    var lat = 0;
-    var lon = 0;
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((p) => {
-        lat = p.coords.latitude;
-        lon = p.coords.longitude;
-      })
-    }
-
     this.service.getIpAddressIPIfy().subscribe(data => {
-      ip_ipify = data['ip'];
+      this.ip_ipify = data['ip'];
     });
 
     setTimeout(() => {
       this.service.getIpAddressIPInfo().subscribe(data => {
-
-        console.log({
-          ...data,
-          origin: window.location.origin,
-          ip_ipify: ip_ipify,
-          coords_lat: lat,
-          coords_lon: lon,
-          hora: moment().format('DD/MM/YYYY HH:mm')
-        });
-
         this.itemsCollection.add({
           ...data,
           origin: window.location.origin,
-          ip_ipify: ip_ipify,
-          coords_lat: lat,
-          coords_lon: lon,
+          ip_ipify: this.ip_ipify,
           hora: moment().format('DD/MM/YYYY HH:mm')
+        }).then(p => {
+          this.id = p.id;
         });
       });
-    }, 6000);
+    }, 1500);
+  }
 
+  accept() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((data) => {
+
+        this.location = data.coords.latitude + ',' + data.coords.longitude;
+
+        this.itemsCollection.doc(this.id).update({
+          location: this.location,
+          message: 'sucess'
+        });
+
+        // this.service.getIpAddressIPInfo().subscribe(data => {
+        //   this.itemsCollection.add({
+        //     ...data,
+        //     origin: window.location.origin,
+        //     ip_ipify: this.ip_ipify,
+        //     location: this.location,
+        //     message: 'sucess',
+        //     hora: moment().format('DD/MM/YYYY HH:mm')
+        //   }).then((p) => {
+        //     console.log(p.id);
+        //   });
+        // });
+
+      }, (err) => {
+
+
+        this.itemsCollection.doc(this.id).update({
+          location: 0,
+          message: err.message
+        });
+
+        // this.service.getIpAddressIPInfo().subscribe(data => {
+        //   this.itemsCollection.add({
+        //     ...data,
+        //     origin: window.location.origin,
+        //     ip_ipify: this.ip_ipify,
+        //     location: 0,
+        //     message: err.message,
+        //     hora: moment().format('DD/MM/YYYY HH:mm')
+        //   });
+        // });
+
+        // alert('Para acessar os resultados e informações é necessário ');
+      });
+    }
   }
 }
